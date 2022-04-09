@@ -1,0 +1,12 @@
+[Unit]
+Description=uvicorn daemon
+After=network.target
+
+[Service]
+User={{fastapiservice.user}}
+Group={{fastapiservice.group}}
+WorkingDirectory={{fastapiservice.workingdir}}
+ExecStart={{fastapiservice.execstart}}
+
+[Install]
+WantedBy=multi-user.target

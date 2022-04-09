@@ -1,0 +1,61 @@
+---
+- name: install nginx and ssl certificates in ansible vm
+  hosts: all
+
+  tasks:
+
+  - name: install and configure nginx
+    block:
+
+    - name: "APT - install nginx"
+      apt:
+        name: nginx
+        update_cache: yes
+
+    - name: copy nginx conf file
+      template:
+        src: ../files/nginx/demo.nginx.j2
+        dest: "/etc/nginx/sites-available/django"
+
+    - name: copy nginx https conf file
+      template:
+        src: ../files/nginx/demo.https.nginx.j2
+        dest: "/etc/nginx/sites-available/djangossl"
+
+    - name: copy certificates
+      copy:
+        src: "{{item}}"
+        dest: /etc/ssl/private/
+      with_items:
+        - ../files/certs/django/certificate.crt
+        - ../files/certs/django/private.key
+  
+    - name: enable django site in nginx
+      file:
+        src: "/etc/nginx/sites-available/django"
+        dest: "/etc/nginx/sites-enabled/django"
+        state: link
+      notify: restart nginx
+
+    - name: enable djangossl site in nginx
+      file:
+        src: "/etc/nginx/sites-available/djangossl"
+        dest: "/etc/nginx/sites-enabled/djangossl"
+        state: link
+      notify: restart nginx
+
+    - name: de-activate default nginx site
+      file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+      notify: restart nginx
+    
+    become: yes
+    become_user: root
+
+  handlers:
+    - name: restart nginx
+      service:
+        name: nginx
+        state: restarted
+      become: yes
