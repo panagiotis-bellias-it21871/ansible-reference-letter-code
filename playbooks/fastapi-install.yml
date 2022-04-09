@@ -1,0 +1,100 @@
+---
+- name: install fastapi app
+  hosts: all
+
+  vars:
+    app_dir: "{{user_dir}}/Reference-Letter-Server"
+    git_repo_url: "https://github.com/pan-bellias/Reference-Letter-Server.git"
+    git_repo_branch: "main"
+
+  tasks:
+
+  - name: print user_dir
+    debug:
+        msg: "user dir is {{user_dir}}"
+
+  - name: Run whoami without become.
+    command: whoami
+    changed_when: false
+    become: false
+    register: whoami
+
+  - name: Set a fact with the user name.
+    set_fact:
+        login_user: "{{ whoami.stdout }}"
+
+  - name: print user name
+    debug:
+        msg: "login user is {{login_user}}"
+
+  - name: ensure github.com is a known host
+    lineinfile:
+        dest: "{{user_dir}}/.ssh/known_hosts"
+        create: yes
+        state: present
+        line: "{{lookup('pipe', 'ssh-keyscan -t rsa github.com')}}"
+        regexp: "^github\\.com"
+
+  - name: clone fastapi project
+    git:
+        repo: "{{git_repo_url}}"
+        version: "{{git_repo_branch}}"
+        clone: yes
+        force: yes
+        dest: "{{app_dir}}"
+    changed_when: true
+    become: yes
+
+  - name: copy env file
+  shell: "cp {{app_dir}}/.env.example {{app_dir}}/.env"
+
+  - name: populate ~/.env db url
+  lineinfile:
+      dest: "{{app_dir}}/.env"
+      state: present
+      regexp: "^DATABASE_URL="
+      line: "DATABASE_URL='{{DATABASE_URL}}'"
+
+  - name: install and activate virtual environment
+    block:
+    - name: setup virtual environment
+      pip:
+        requirements: "{{app_dir}}/requirements.txt"
+        virtualenv: "{{app_dir}}/myvenv"
+        virtualenv_python: python3
+    rescue:
+    - name: "APT - install misc packages"
+      apt:
+        name: [python3, python3-pip, python3-virtualenv, virtualenv]
+        update_cache: yes
+      become: yes
+      become_user: root
+      when: hostvars[inventory_hostname].ansible_distribution == 'Ubuntu'
+    always:
+
+    - name: setup virtual environment
+      pip:
+        requirements: "{{app_dir}}/requirements.txt"
+        virtualenv: "{{app_dir}}/myvenv"
+        virtualenv_python: python3
+
+    - name: copy fastapi service file
+      template:
+        src: ../files/fastapi/ref_letters_server.service.j2
+        dest: "/etc/systemd/system/ref_letters_server.service"
+      become: yes
+      become_user: root
+    
+    - name: ensure gunicorn service started
+      service: 
+        name: gunicorn
+        state: started
+        enabled: yes
+      become: yes
+  
+  handlers:
+    - name: restart gunicorn
+      service:
+        name: gunicorn
+        state: restarted
+      become: yes

@@ -1,12 +1,15 @@
 [Unit]
-Description=uvicorn daemon
+Description=Reference Letter Server
 After=network.target
 
 [Service]
 User={{fastapiservice.user}}
 Group={{fastapiservice.group}}
 WorkingDirectory={{fastapiservice.workingdir}}
+LimitNOFILE=4096
 ExecStart={{fastapiservice.execstart}}
+Restart=on-failure
+RestartSec=5s
 
 [Install]
 WantedBy=multi-user.target
