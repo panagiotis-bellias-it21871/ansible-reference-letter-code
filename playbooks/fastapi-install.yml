@@ -4,7 +4,7 @@
 
   vars:
     app_dir: "{{user_dir}}/Reference-Letter-Server"
-    git_repo_url: "https://github.com/pan-bellias/Reference-Letter-Server.git"
+    git_repo_url: "git@github.com:pan-bellias/Reference-Letters-Server.git"
     git_repo_branch: "main"
 
   tasks:
@@ -46,10 +46,10 @@
     become: yes
 
   - name: copy env file
-  shell: "cp {{app_dir}}/.env.example {{app_dir}}/.env"
+    shell: "cp {{app_dir}}/.env.example {{app_dir}}/.env"
 
   - name: populate ~/.env db url
-  lineinfile:
+    lineinfile:
       dest: "{{app_dir}}/.env"
       state: present
       regexp: "^DATABASE_URL="
