@@ -46,7 +46,7 @@
     become: yes
 
   - name: copy env file
-    shell: "cp {{app_dir}}/.env.example {{app_dir}}/.env"
+    shell: "cp {{app_dir}}/ref_letters/.env.example {{app_dir}}/ref_letters/.env"
 
   - name: populate ~/.env db url
     lineinfile:
