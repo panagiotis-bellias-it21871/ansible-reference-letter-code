@@ -50,8 +50,32 @@ ansible-playbook -l <group-name> playbooks/postgres-install.yml \
 -e PSQL_PASSWD=<password-for-db-user> \
 -e PSQL_DB=<name-for-our-database>
 ```
+
+e.g.
+```bash
+ansible-playbook -l test playbooks/postgres-install.yml \
+> -e PSQL_USER=fastapi \
+> -e PSQL_PASSWD=pass123 \
+> -e PSQL_DB=ref_letters_db
+```
+
 This operation is done automatically with Jenkins CI/CD Tool and Jenkinsfile.
-Here, we do twice this action with different parameters in a way that both fastapi project and keycloak service are satisfied. (Untested feature)
+Here, we do twice this action with different parameters in a way that both fastapi project and keycloak service are satisfied.
+
+e.g.
+```bash
+ansible-playbook -l test playbooks/postgres-install.yml \
+> -e PSQL_USER=keycloak \
+> -e PSQL_PASSWD=pass123 \
+> -e PSQL_DB=auth_db
+```
+
+* Private Repository (configure like this in a way Ansible will be able to clone the private repo in the remote server)
+[source](https://ntlx.org/de/2018/07/use-ansible-to-clone-update-private-git-repositories-via-ssh.html)
+```bash
+eval `ssh-agent`
+ssh-add ~/.ssh/id_rsa # add your private ssh key you use to connect to github to ssh-agent
+```
 
 [fastapi-install.yml](playbooks/fastapi-install.yml): This playbook clones fastapi project code, activates virtual environment, installs all requirements, populate .env variables and starts a uvicorn service according to values passed during execution from the command line. Also we declare explicitly to which group of hosts we want to deploy our service.
 ```bash
@@ -59,6 +83,12 @@ ansible-playbook -l <group-name> playbooks/fastapi-install.yml \
 -e DATABASE_URL=<url-where-database-runs-with-right-credentials> \ # e.g. postgresql://testuser:pass1234@localhost/demo_db
 ```
 This operation is also done automatically with Jenkins CI/CD Tool and Jenkinsfile.
+
+e.g.
+```bash
+ansible-playbook -l test playbooks/fastapi-install.yml \
+> -e DATABASE_URL=postgresql://localhost/ref_letters_db?user=fastapi&password=pass123
+```
 
 [keycloak-install.yml](playbooks/keycloak-install.yml)
 

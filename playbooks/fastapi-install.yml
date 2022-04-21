@@ -3,7 +3,7 @@
   hosts: all
 
   vars:
-    app_dir: "{{user_dir}}/Reference-Letter-Server"
+    app_dir: "{{user_dir}}/Reference-Letters-Server"
     git_repo_url: "git@github.com:pan-bellias/Reference-Letters-Server.git"
     git_repo_branch: "main"
 
@@ -42,15 +42,16 @@
         clone: yes
         force: yes
         dest: "{{app_dir}}"
+        accept_hostkey: yes
     changed_when: true
-    become: yes
+    become: no
 
   - name: copy env file
     shell: "cp {{app_dir}}/ref_letters/.env.example {{app_dir}}/ref_letters/.env"
 
   - name: populate ~/.env db url
     lineinfile:
-      dest: "{{app_dir}}/.env"
+      dest: "{{app_dir}}/ref_letters/.env"
       state: present
       regexp: "^DATABASE_URL="
       line: "DATABASE_URL='{{DATABASE_URL}}'"
