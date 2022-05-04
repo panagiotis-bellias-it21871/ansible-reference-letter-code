@@ -114,14 +114,46 @@ ansible-playbook -l test playbooks/fastapi-install.yml \
 
 <a name="docker"></a>
 ### Ansible & Docker
+* Containers For FastAPI App
+
+[fastapi-install.yml](docker/fastapi-install.yml): This playbook installs docker and docker-compose packages, clones fastapi project code, populate .env variables, and scales up the containers declared in the docker-compose.yml of fastapi project taking build instructions from fastapi.nonroot.Dockerfile of our app, according also to values passed during execution from the command line. Also we declare explicitly to which group of hosts we want to deploy our app.
+```bash
+ansible-playbook -l <group-name> docker/fastapi-install.yml \
+-e DATABASE_URL=<url-where-database-runs-with-right-credentials> \ # e.g. postgresql://demouser:pass123@db/deploy_db
+```
+This operation is also done automatically with Jenkins CI/CD Tool and Jenkinsfile.
+
+* Containers For VueJS App
+
+[vuejs-install.yml](docker/vuejs-install.yml): This playbook installs docker and docker-compose packages, clones vuejs project code, populate .env variables, and scales up the containers declared in the docker-compose.yaml of vuejs project taking build instructions from Dockerfile of our app, according also to values passed during execution from the command line. Also we declare explicitly to which group of hosts we want to deploy our app.
+```bash
+ansible-playbook -l <group-name> docker/fastapi-install.yml \
+-e MINIO_URL=?
+```
+This operation is also done automatically with Jenkins CI/CD Tool and Jenkinsfile.
 
 <a name="k8s"></a>
 ### Kubernetes Deployment Usage
+* The [populate-env.yml](playbooks/populate-env.yml) is used to populate the .env variables after we have cloned locally our projects and before we will be applying the k8s .yaml files to have entities creation. Because a configmap must be generated from .env file we have locally, so the playbook doesn't handle some remote host but only localhost (No need to declare group of hosts). These values are passed from the command line like before.
+```bash
+ansible-playbook playbooks/populate-env.yml \
+-e DATABASE_URL=<url-where-database-runs-with-right-credentials> \ # e.g. postgresql://testuser:pass1234@pg-cluster-ip/demo_db
+-e MINIO_URL=?
+```
+This operation is also done automatically with Jenkins CI/CD Tool and Jenkinsfile with the rest commands needed to deploy on a k8s cluster.
 
 <a name="ssl"></a>
 ## SSL Configuration using playbooks
 
+* [ansible-https](playbooks/ansible-https.yml): This is used only manually (no Jenkins involved) so as to configure SSL certificates for HTTPS environment in ansible-vm.
+* [jenkins-config](playbooks/jenkins-config.yml): This is used so as to configure SSL certificates for HTTPS environment in jenkins-server for extra security.
+
 <a name="files"></a>
 ## files folder
+
+* [fastapi](files/fastapi): has a file that describes how the uvicorn service is built and running in a VM.
+* [nginx](files/nginx): has configuration files for nginx sites like the vuejs app and the jenkins service, both in HTTP and HTTPS.
+
+For HTTPS you should make a folder named 'certs' under [files folder](files) and there you have to store (and concatenate according ZeroSSL instructions) your SSL Certificates for your ansible-vm under nginx subfolder, and your jenkins-server under jenkins subfolder.
 
 ## It's our pleasure to contact us at our social media or at github [issues](https://github.com/pan-bellias/Ansible-Reference-Letter-Code/issues)
