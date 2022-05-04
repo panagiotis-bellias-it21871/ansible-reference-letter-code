@@ -8,9 +8,23 @@ Ansible-Reference-Letter-Code, an ansible project in the context of 'Usage of De
 <a href="https://www.docker.com/" target="_blank"> <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/docker/docker-original-wordmark.svg" alt="docker" width="40" height="40"/> </a>
 <a href="https://git-scm.com/" target="_blank"> <img src="https://www.vectorlogo.zone/logos/git-scm/git-scm-icon.svg" alt="git" width="40" height="40"/> </a> <a href="https://www.jenkins.io" target="_blank"> <img src="https://www.vectorlogo.zone/logos/jenkins/jenkins-icon.svg" alt="jenkins" width="40" height="40"/> </a> <a href="https://kubernetes.io" target="_blank"> <img src="https://www.vectorlogo.zone/logos/kubernetes/kubernetes-icon.svg" alt="kubernetes" width="40" height="40"/> </a> <a href="https://www.linux.org/" target="_blank"> <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/linux/linux-original.svg" alt="linux" width="40" height="40"/> </a> <a href="https://www.nginx.com" target="_blank"> <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/nginx/nginx-original.svg" alt="nginx" width="40" height="40"/> </a> <a href="https://www.postgresql.org" target="_blank"> <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/postgresql/postgresql-original-wordmark.svg" alt="postgresql" width="40" height="40"/> </a> <a href="https://www.python.org" target="_blank"> <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/python/python-original.svg" alt="python" width="40" height="40"/> </a> </p>
 
+<a name="contents"></a>
+## Table Of Contents
+1. [Table Of Contents](#contents)  
+2. [Ansible Installation](#installation)  
+3. [Connectivity](#conn)  
+4. [Deployment Support](#deployment)  
+4.1. [Pure Ansible](#pure-ans)  
+4.2. [Ansible & Docker](#docker)  
+4.3. [Kubernetes Deployment Usage](#k8s)  
+5. [SSL Configuration using playbooks](#ssl)  
+6. [files folder](#files)  
+
+<a name="installation"></a>
 ## Ansible Installation
 * [Instructions](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html#installing-ansible-on-ubuntu)
 
+<a name="connect"></a>
 ## Connectivity
 
 * Create an inventory file (e.g. hosts.yml) that holds the remote hosts that ansible will handle. The file will have entries look like:
@@ -37,8 +51,10 @@ ansible -m ping all
 ```
 to check connectivity with declared hosts
 
+<a name="deployment"></a>
 ## Deployment Support
 
+<a name="pure-ans"></a>
 ### Pure Ansible
 * Make sure you have configured the inventory file and you are now in the root folder of this project.
 * Postgres Installation
@@ -95,3 +111,17 @@ ansible-playbook -l test playbooks/fastapi-install.yml \
 [vuejs-install.yml](playbooks/vuejs-install.yml)
 
 [minio-install.yml](playbooks/minio-install.yml)
+
+<a name="docker"></a>
+### Ansible & Docker
+
+<a name="k8s"></a>
+### Kubernetes Deployment Usage
+
+<a name="ssl"></a>
+## SSL Configuration using playbooks
+
+<a name="files"></a>
+## files folder
+
+## It's our pleasure to contact us at our social media or at github [issues](https://github.com/pan-bellias/Ansible-Reference-Letter-Code/issues)
