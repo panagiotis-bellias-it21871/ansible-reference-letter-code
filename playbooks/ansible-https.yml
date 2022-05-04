@@ -15,32 +15,32 @@
     - name: copy nginx conf file
       template:
         src: ../files/nginx/demo.nginx.j2
-        dest: "/etc/nginx/sites-available/django"
+        dest: "/etc/nginx/sites-available/websystem"
 
     - name: copy nginx https conf file
       template:
         src: ../files/nginx/demo.https.nginx.j2
-        dest: "/etc/nginx/sites-available/djangossl"
+        dest: "/etc/nginx/sites-available/websystemssl"
 
     - name: copy certificates
       copy:
         src: "{{item}}"
         dest: /etc/ssl/private/
       with_items:
-        - ../files/certs/django/certificate.crt
-        - ../files/certs/django/private.key
+        - ../files/certs/websystem/certificate.crt
+        - ../files/certs/websystem/private.key
   
     - name: enable django site in nginx
       file:
-        src: "/etc/nginx/sites-available/django"
-        dest: "/etc/nginx/sites-enabled/django"
+        src: "/etc/nginx/sites-available/websystem"
+        dest: "/etc/nginx/sites-enabled/websystem"
         state: link
       notify: restart nginx
 
     - name: enable djangossl site in nginx
       file:
-        src: "/etc/nginx/sites-available/djangossl"
-        dest: "/etc/nginx/sites-enabled/djangossl"
+        src: "/etc/nginx/sites-available/websystemssl"
+        dest: "/etc/nginx/sites-enabled/websystemssl"
         state: link
       notify: restart nginx
 
