@@ -15,6 +15,8 @@ Ansible-Reference-Letter-Code, an ansible project in the context of 'Usage of De
 3. [Connectivity](#conn)  
 4. [Deployment Support](#deployment)  
 4.1. [Docker](#docker)  
+4.1.1. [Containers For FastAPI App](#fastapi)
+4.1.2. [Containers For VueJS App](#vuejs)
 4.2. [Kubernetes Deployment Usage](#k8s)  
 5. [SSL Configuration using playbooks](#ssl)  
 6. [files folder](#files)  
@@ -56,6 +58,7 @@ to check connectivity with declared hosts
 <a name="docker"></a>
 ### Docker
 * Make sure you have configured the inventory file and you are now in the root folder of this project.
+<a name="fastapi"></a>
 #### Containers For FastAPI App
 
 * Postgres Installation
@@ -108,7 +111,7 @@ e.g.
 ansible-playbook -l test playbooks/fastapi-install.yml \
 > -e DATABASE_URL=postgresql://localhost/ref_letters_db?user=fastapi&password=pass123
 ```
-
+<a name="vuejs"></a>
 #### Containers For VueJS App
 
 [vuejs-install.yml](playbooks/vuejs-install.yml): This playbook installs docker and docker-compose packages, clones vuejs project code, populate .env variables, and scales up the containers declared in the docker-compose.yaml of vuejs project taking build instructions from Dockerfile of our app, according also to values passed during execution from the command line. Also we declare explicitly to which group of hosts we want to deploy our app.
