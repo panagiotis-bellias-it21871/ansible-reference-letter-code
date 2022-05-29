@@ -15,8 +15,8 @@ Ansible-Reference-Letter-Code, an ansible project in the context of 'Usage of De
 3. [Connectivity](#conn)  
 4. [Deployment Support](#deployment)  
 4.1. [Docker](#docker)  
-4.1.1. [Containers For FastAPI App](#fastapi)
-4.1.2. [Containers For VueJS App](#vuejs)
+4.1.1. [Containers For FastAPI App](#fastapi)  
+4.1.2. [Containers For VueJS App](#vuejs)  
 4.2. [Kubernetes Deployment Usage](#k8s)  
 5. [SSL Configuration using playbooks](#ssl)  
 6. [files folder](#files)  
@@ -116,7 +116,7 @@ ansible-playbook -l test playbooks/fastapi-install.yml \
 
 [vuejs-install.yml](playbooks/vuejs-install.yml): This playbook installs docker and docker-compose packages, clones vuejs project code, populate .env variables, and scales up the containers declared in the docker-compose.yaml of vuejs project taking build instructions from Dockerfile of our app, according also to values passed during execution from the command line. Also we declare explicitly to which group of hosts we want to deploy our app.
 ```bash
-ansible-playbook -l <group-name> docker/fastapi-install.yml \
+ansible-playbook -l <group-name> playbooks/vuejs-install.yml \
 -e VUE_APP_BACKEND_URL="http://127.0.0.1:8000" \
 -e VUE_APP_KEYCLOAK_URL="http://127.0.0.1:8001/user"
 ```
