@@ -14,9 +14,8 @@ Ansible-Reference-Letter-Code, an ansible project in the context of 'Usage of De
 2. [Ansible Installation](#installation)  
 3. [Connectivity](#conn)  
 4. [Deployment Support](#deployment)  
-4.1. [Pure Ansible](#pure-ans)  
-4.2. [Ansible & Docker](#docker)  
-4.3. [Kubernetes Deployment Usage](#k8s)  
+4.1. [Docker](#docker)  
+4.2. [Kubernetes Deployment Usage](#k8s)  
 5. [SSL Configuration using playbooks](#ssl)  
 6. [files folder](#files)  
 
@@ -54,9 +53,11 @@ to check connectivity with declared hosts
 <a name="deployment"></a>
 ## Deployment Support
 
-<a name="pure-ans"></a>
-### Pure Ansible
+<a name="docker"></a>
+### Docker
 * Make sure you have configured the inventory file and you are now in the root folder of this project.
+#### Containers For FastAPI App
+
 * Postgres Installation
 
 [postgres-install.yml](playbooks/postgres-install.yml): This playbook installs all the packages needed, starts the postgresql service and creates a database and a user for our fastapi and vuejs project according to values passed during execution from the command line. Also we declare explicitly to which group of hosts we want to install our service. 
@@ -75,7 +76,6 @@ ansible-playbook -l test playbooks/postgres-install.yml \
 > -e PSQL_DB=ref_letters_db
 ```
 
-This operation is done automatically with Jenkins CI/CD Tool and Jenkinsfile.
 Here, we do twice this action with different parameters in a way that both fastapi project and keycloak service are satisfied.
 
 e.g.
@@ -93,12 +93,15 @@ eval `ssh-agent`
 ssh-add ~/.ssh/id_rsa # add your private ssh key you use to connect to github to ssh-agent
 ```
 
-[fastapi-install.yml](playbooks/fastapi-install.yml): This playbook clones fastapi project code, activates virtual environment, installs all requirements, populate .env variables and starts a uvicorn service according to values passed during execution from the command line. Also we declare explicitly to which group of hosts we want to deploy our service.
+[keycloak-install.yml](playbooks/keycloak-install.yml)
+
+
+[fastapi-install.yml](playbooks/fastapi-install.yml): This playbook installs docker and docker-compose packages, clones fastapi project code, populate .env variables, and scales up the containers declared in the docker-compose.yml of fastapi project taking build instructions from fastapi.nonroot.Dockerfile of our app, according also to values passed during execution from the command line. Also we declare explicitly to which group of hosts we want to deploy our app.
 ```bash
 ansible-playbook -l <group-name> playbooks/fastapi-install.yml \
--e DATABASE_URL=<url-where-database-runs-with-right-credentials> \ # e.g. postgresql://testuser:pass1234@localhost/demo_db
+-e DATABASE_URL=<url-where-database-runs-with-right-credentials> \ # e.g. postgresql://demouser:pass123@db/deploy_db
 ```
-This operation is also done automatically with Jenkins CI/CD Tool and Jenkinsfile.
+The whole operation is also done automatically with Jenkins CI/CD Tool and Jenkinsfile.
 
 e.g.
 ```bash
@@ -106,29 +109,13 @@ ansible-playbook -l test playbooks/fastapi-install.yml \
 > -e DATABASE_URL=postgresql://localhost/ref_letters_db?user=fastapi&password=pass123
 ```
 
-[keycloak-install.yml](playbooks/keycloak-install.yml)
+#### Containers For VueJS App
 
-[vuejs-install.yml](playbooks/vuejs-install.yml)
-
-[minio-install.yml](playbooks/minio-install.yml)
-
-<a name="docker"></a>
-### Ansible & Docker
-* Containers For FastAPI App
-
-[fastapi-install.yml](docker/fastapi-install.yml): This playbook installs docker and docker-compose packages, clones fastapi project code, populate .env variables, and scales up the containers declared in the docker-compose.yml of fastapi project taking build instructions from fastapi.nonroot.Dockerfile of our app, according also to values passed during execution from the command line. Also we declare explicitly to which group of hosts we want to deploy our app.
+[vuejs-install.yml](playbooks/vuejs-install.yml): This playbook installs docker and docker-compose packages, clones vuejs project code, populate .env variables, and scales up the containers declared in the docker-compose.yaml of vuejs project taking build instructions from Dockerfile of our app, according also to values passed during execution from the command line. Also we declare explicitly to which group of hosts we want to deploy our app.
 ```bash
 ansible-playbook -l <group-name> docker/fastapi-install.yml \
--e DATABASE_URL=<url-where-database-runs-with-right-credentials> \ # e.g. postgresql://demouser:pass123@db/deploy_db
-```
-This operation is also done automatically with Jenkins CI/CD Tool and Jenkinsfile.
-
-* Containers For VueJS App
-
-[vuejs-install.yml](docker/vuejs-install.yml): This playbook installs docker and docker-compose packages, clones vuejs project code, populate .env variables, and scales up the containers declared in the docker-compose.yaml of vuejs project taking build instructions from Dockerfile of our app, according also to values passed during execution from the command line. Also we declare explicitly to which group of hosts we want to deploy our app.
-```bash
-ansible-playbook -l <group-name> docker/fastapi-install.yml \
--e MINIO_URL=?
+-e VUE_APP_BACKEND_URL="http://127.0.0.1:8000" \
+-e VUE_APP_KEYCLOAK_URL="http://127.0.0.1:8001/user"
 ```
 This operation is also done automatically with Jenkins CI/CD Tool and Jenkinsfile.
 
@@ -138,14 +125,15 @@ This operation is also done automatically with Jenkins CI/CD Tool and Jenkinsfil
 ```bash
 ansible-playbook playbooks/populate-env.yml \
 -e DATABASE_URL=<url-where-database-runs-with-right-credentials> \ # e.g. postgresql://testuser:pass1234@pg-cluster-ip/demo_db
--e MINIO_URL=?
+-e VUE_APP_BACKEND_URL="http://127.0.0.1:8000" \
+-e VUE_APP_KEYCLOAK_URL="http://127.0.0.1:8001/user"
 ```
 This operation is also done automatically with Jenkins CI/CD Tool and Jenkinsfile with the rest commands needed to deploy on a k8s cluster.
 
 <a name="ssl"></a>
 ## SSL Configuration using playbooks
 
-* [ansible-https](playbooks/ansible-https.yml): This is used only manually (no Jenkins involved) so as to configure SSL certificates for HTTPS environment in ansible-vm.
+* [docker-https](playbooks/docker-https.yml): This is used only manually so as to configure SSL certificates for HTTPS environment in docker-vm.
 * [jenkins-config](playbooks/jenkins-config.yml): This is used so as to configure SSL certificates for HTTPS environment in jenkins-server for extra security.
 
 <a name="files"></a>
