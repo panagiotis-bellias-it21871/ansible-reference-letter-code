@@ -1,0 +1,197 @@
+---
+- name: install reference letters system with docker-compose
+  hosts: all
+  vars:
+    app_dir: "{{user_dir}}/Reference-Letters-Server"
+    git_repo_url: "git@github.com:pan-bellias/Reference-Letters-Server.git"
+    git_repo_branch: "main"
+  become: yes
+  become_user: root
+  tasks:
+    - name: Install docker packages
+      remote_user: "{{referencelettersystemservice.group}}"
+      apt:
+        name: "{{ item }}"
+        state: present
+        update_cache: yes
+      with_items:
+        - apt-transport-https
+        - ca-certificates
+        - curl
+        - software-properties-common
+      tags:
+        - docker
+    - name: Add Docker s official GPG key
+      remote_user: "{{referencelettersystemservice.group}}"
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+      tags:
+        - docker
+    - name: Verify that we have the key with the fingerprint
+      remote_user: "{{referencelettersystemservice.group}}"
+      apt_key:
+        id: 0EBFCD88
+        state: present
+      tags:
+        - docker
+    - name: Set up the stable repository
+      remote_user: "{{referencelettersystemservice.group}}"
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu xenial stable
+        state: present
+        update_cache: yes
+      tags:
+        - docker
+    - name: Update apt packages
+      remote_user: "{{referencelettersystemservice.group}}"
+      apt:
+        update_cache: yes
+      tags:
+        - docker
+    - name: Install docker
+      remote_user: "{{referencelettersystemservice.group}}"
+      apt:
+        name: docker-ce
+        state: present
+        update_cache: yes
+      #notify: Start docker on boot
+      tags:
+        - docker
+    - name: Add remote "{{referencelettersystemservice.group}}" user to "docker" group
+      remote_user: "{{referencelettersystemservice.group}}"
+      user:
+        name: "{{referencelettersystemservice.group}}"
+        group: "docker"
+        append: yes
+      tags:
+        - docker
+    - name: Install docker-compose
+      remote_user: "{{referencelettersystemservice.group}}"
+      get_url: 
+        url : https://github.com/docker/compose/releases/download/1.25.1-rc1/docker-compose-Linux-x86_64
+        dest: /usr/local/bin/docker-compose
+        mode: 'u+x,g+x'
+  
+
+    - name: ensure github.com is a known host
+      lineinfile:
+          dest: "{{user_dir}}/.ssh/known_hosts"
+          create: yes
+          state: present
+          line: "{{lookup('pipe', 'ssh-keyscan -t rsa github.com')}}"
+          regexp: "^github\\.com"
+
+    - name: clone reference letters project
+      git:
+          repo: "{{git_repo_url}}"
+          version: "{{git_repo_branch}}"
+          clone: yes
+          force: yes
+          dest: "{{app_dir}}"
+      changed_when: true
+
+    - name: copy fastapi env file
+      shell: "cp {{app_dir}}/ref_letters/.env.docker.example {{app_dir}}/ref_letters/.env"
+
+    - name: populate fastapi ~/.env url
+      lineinfile:
+          dest: "{{app_dir}}/ref_letters/.env"
+          state: present
+          regexp: "^DATABASE_URL="
+          line: "DATABASE_URL='{{DATABASE_URL}}'"
+
+    - name: populate fastapi ~/.env keycloak server url value
+      lineinfile:
+          dest: "{{app_dir}}/ref_letters/.env"
+          state: present
+          regexp: "^KC_SERVER_URL="
+          line: "KC_SERVER_URL='{{KC_SERVER_URL}}'"
+
+    - name: populate fastapi ~/.env keycloak client id value
+      lineinfile:
+          dest: "{{app_dir}}/ref_letters/.env"
+          state: present
+          regexp: "^KC_CLIENT_ID="
+          line: "KC_CLIENT_ID='{{KC_CLIENT_ID}}'"
+    
+    - name: populate fastapi ~/.env keycloak realm value
+      lineinfile:
+          dest: "{{app_dir}}/ref_letters/.env"
+          state: present
+          regexp: "^KC_REALM="
+          line: "KC_REALM='{{KC_REALM}}'"
+    
+    - name: populate fastapi ~/.env keycloak client secret value
+      lineinfile:
+          dest: "{{app_dir}}/ref_letters/.env"
+          state: present
+          regexp: "^KC_CLIENT_SECRET="
+          line: "KC_CLIENT_SECRET='{{KC_CLIENT_SECRET}}'"
+    
+    - name: copy vuejs env file
+      shell: "cp {{app_dir}}/Reference-Letters-Client/.env.example {{app_dir}}/Reference-Letters-Client/.env"
+
+    - name: populate vuejs ~/.env backend url value
+      lineinfile:
+          dest: "{{app_dir}}/Reference-Letters-Client/.env"
+          state: present
+          regexp: "^VUE_APP_BACKEND_URL="
+          line: "VUE_APP_BACKEND_URL='{{VUE_APP_BACKEND_URL}}'"
+    
+    - name: populate vuejs ~/.env keycloak url value
+      lineinfile:
+          dest: "{{app_dir}}/Reference-Letters-Client/.env"
+          state: present
+          regexp: "^VUE_APP_KEYCLOAK_URL="
+          line: "VUE_APP_KEYCLOAK_URL='{{VUE_APP_KEYCLOAK_URL}}'"
+
+    # - name: copy certificates
+    #   copy:
+    #     src: "../files/certs/docker/certificate.crt"
+    #     dest: "{{app_dir}}/assets/nginx/certs/server.crt"
+
+    # - name: copy certificates
+    #   copy:
+    #     src: "../files/certs/docker/private.key"
+    #     dest: "{{app_dir}}/assets/nginx/certs/server.key"
+
+    - name: install pip3
+      apt:
+        name: "python3-pip"
+        state: present
+
+    - name: Install Docker SDK for Python
+      pip:
+        name: "docker<5" 
+      become: yes
+
+    - name: Install docker-compose with pip
+      pip:
+        name: "docker-compose" 
+      become: yes
+
+    - name: Tear down existing services
+      community.docker.docker_compose:
+        project_src: "{{app_dir}}"
+        state: absent
+      become: true
+      vars:
+        ansible_python_interpreter: /bin/python3
+
+    - name: Create and start services
+      community.docker.docker_compose:
+        project_src: "{{app_dir}}"
+      register: output
+
+    - ansible.builtin.debug:
+        var: output
+
+    - name: Run `docker-compose up`
+      community.docker.docker_compose:
+        project_src: "{{app_dir}}"
+        build: no
+      register: output
+    
+    - ansible.builtin.debug:
+        var: output

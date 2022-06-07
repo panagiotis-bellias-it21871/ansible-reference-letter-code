@@ -1,7 +1,4 @@
-app_port: 8000
-fastapiservice:
+referencelettersystemservice:
     user: "bellias"
     user_dir: "/home/bellias"
     group: "bellias"
-    workingdir: "{{ user_dir }}/Reference-Letters-Server/ref_letters"
-    execstart: "{{ user_dir }}/Reference-Letters-Server/myvenv/bin/gunicorn main:app --access-logfile - --workers 2 -k uvicorn.workers.UvicornWorker --bind 127.0.0.1:{{ app_port }} --error-logfile {{ workingdir }}/error_log.txt"
