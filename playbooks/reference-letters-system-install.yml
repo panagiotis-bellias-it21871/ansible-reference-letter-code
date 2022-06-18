@@ -1,14 +1,14 @@
 ---
-- name: install reference letters system with docker-compose
-  hosts: all
+- name: Install reference-letters-system using Docker & docker-compose
+  hosts: docker_group
   vars:
-    app_dir: "{{user_dir}}/Reference-Letters-Server"
-    git_repo_url: "git@github.com:pan-bellias/Reference-Letters-Server.git"
+    system_dir: "{{user_dir}}/reference-letters-system"
+    git_repo_url: "https://github.com/panagiotis-bellias-it21871/reference-letters-system.git"
     git_repo_branch: "main"
   become: yes
   become_user: root
   tasks:
-    - name: Install docker packages
+    - name: Install Docker packages
       remote_user: "{{referencelettersystemservice.group}}"
       apt:
         name: "{{ item }}"
@@ -72,7 +72,6 @@
         url : https://github.com/docker/compose/releases/download/1.25.1-rc1/docker-compose-Linux-x86_64
         dest: /usr/local/bin/docker-compose
         mode: 'u+x,g+x'
-  
 
     - name: ensure github.com is a known host
       lineinfile:
@@ -87,61 +86,64 @@
           repo: "{{git_repo_url}}"
           version: "{{git_repo_branch}}"
           clone: yes
+          track_submodules: yes
           force: yes
-          dest: "{{app_dir}}"
+          dest: "{{system_dir}}"
       changed_when: true
+    
+    - name: copy backend env file
+      shell: "cp {{system_dir}}/{{BACKEND_DIR}}/ref_letters/.env.docker.example {{system_dir}}/{{BACKEND_DIR}}/ref_letters/.env"
 
-    - name: copy fastapi env file
-      shell: "cp {{app_dir}}/ref_letters/.env.docker.example {{app_dir}}/ref_letters/.env"
-
-    - name: populate fastapi ~/.env url
+    - name: populate backend ~/.env url
       lineinfile:
-          dest: "{{app_dir}}/ref_letters/.env"
+          dest: "{{system_dir}}/'{{BACKEND_DIR}}'/ref_letters/.env"
           state: present
           regexp: "^DATABASE_URL="
           line: "DATABASE_URL='{{DATABASE_URL}}'"
 
-    - name: populate fastapi ~/.env keycloak server url value
+    - name: populate backend ~/.env keycloak server url value
       lineinfile:
-          dest: "{{app_dir}}/ref_letters/.env"
+          dest: "{{system_dir}}/'{{BACKEND_DIR}}'/ref_letters/.env"
           state: present
           regexp: "^KC_SERVER_URL="
           line: "KC_SERVER_URL='{{KC_SERVER_URL}}'"
 
-    - name: populate fastapi ~/.env keycloak client id value
+    - name: populate backend ~/.env keycloak client id value
       lineinfile:
-          dest: "{{app_dir}}/ref_letters/.env"
+          dest: "{{system_dir}}/'{{BACKEND_DIR}}'/ref_letters/.env"
           state: present
           regexp: "^KC_CLIENT_ID="
           line: "KC_CLIENT_ID='{{KC_CLIENT_ID}}'"
     
-    - name: populate fastapi ~/.env keycloak realm value
+    - name: populate backend ~/.env keycloak realm value
       lineinfile:
-          dest: "{{app_dir}}/ref_letters/.env"
+          dest: "{{system_dir}}/'{{BACKEND_DIR}}'/ref_letters/.env"
           state: present
           regexp: "^KC_REALM="
           line: "KC_REALM='{{KC_REALM}}'"
     
-    - name: populate fastapi ~/.env keycloak client secret value
+    - name: populate backend ~/.env keycloak client secret value
       lineinfile:
-          dest: "{{app_dir}}/ref_letters/.env"
+          dest: "{{system_dir}}/'{{BACKEND_DIR}}'/ref_letters/.env"
           state: present
           regexp: "^KC_CLIENT_SECRET="
           line: "KC_CLIENT_SECRET='{{KC_CLIENT_SECRET}}'"
+
+    # possible here to add more .env variables
     
     - name: copy vuejs env file
-      shell: "cp {{app_dir}}/Reference-Letters-Client/.env.example {{app_dir}}/Reference-Letters-Client/.env"
+      shell: "cp {{system_dir}}/'{{FRONTEND_DIR}}'/.env.example {{system_dir}}/'{{FRONTEND_DIR}}'/.env"
 
     - name: populate vuejs ~/.env backend url value
       lineinfile:
-          dest: "{{app_dir}}/Reference-Letters-Client/.env"
+          dest: "{{system_dir}}/'{{FRONTEND_DIR}}'/.env"
           state: present
           regexp: "^VUE_APP_BACKEND_URL="
           line: "VUE_APP_BACKEND_URL='{{VUE_APP_BACKEND_URL}}'"
     
     - name: populate vuejs ~/.env keycloak url value
       lineinfile:
-          dest: "{{app_dir}}/Reference-Letters-Client/.env"
+          dest: "{{system_dir}}/'{{FRONTEND_DIR}}'/.env"
           state: present
           regexp: "^VUE_APP_KEYCLOAK_URL="
           line: "VUE_APP_KEYCLOAK_URL='{{VUE_APP_KEYCLOAK_URL}}'"
@@ -149,12 +151,12 @@
     # - name: copy certificates
     #   copy:
     #     src: "../files/certs/docker/certificate.crt"
-    #     dest: "{{app_dir}}/assets/nginx/certs/server.crt"
+    #     dest: "{{system_dir}}/assets/nginx/certs/server.crt"
 
     # - name: copy certificates
     #   copy:
     #     src: "../files/certs/docker/private.key"
-    #     dest: "{{app_dir}}/assets/nginx/certs/server.key"
+    #     dest: "{{system_dir}}/assets/nginx/certs/server.key"
 
     - name: install pip3
       apt:
@@ -173,7 +175,7 @@
 
     - name: Tear down existing services
       community.docker.docker_compose:
-        project_src: "{{app_dir}}"
+        project_src: "{{system_dir}}"
         state: absent
       become: true
       vars:
@@ -181,7 +183,7 @@
 
     - name: Create and start services
       community.docker.docker_compose:
-        project_src: "{{app_dir}}"
+        project_src: "{{system_dir}}"
       register: output
 
     - ansible.builtin.debug:
@@ -189,7 +191,7 @@
 
     - name: Run `docker-compose up`
       community.docker.docker_compose:
-        project_src: "{{app_dir}}"
+        project_src: "{{system_dir}}"
         build: no
       register: output
     
