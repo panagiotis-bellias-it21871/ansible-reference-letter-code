@@ -15,8 +15,6 @@ An ansible project about reference letter handling in the context of DIT HUA The
 3. [Connectivity](#conn)  
 4. [Deployment Support](#deployment)  
 4.1. [Docker](#docker)  
-4.1.1. [Containers For FastAPI App](#fastapi)  
-4.1.2. [Containers For VueJS App](#vuejs)  
 4.2. [Kubernetes Deployment Usage](#k8s)  
 5. [SSL Configuration using playbooks](#ssl)  
 6. [files folder](#files)  
