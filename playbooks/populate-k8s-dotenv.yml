@@ -1,6 +1,6 @@
 ---
 - name: Configure reference-letters-system dotenv variables
-  hosts: k8s_group
+  hosts: localhost
   vars:
     system_dir: "{{user_dir}}/reference-letters-system"
     git_repo_url: "https://github.com/panagiotis-bellias-it21871/reference-letters-system.git"
