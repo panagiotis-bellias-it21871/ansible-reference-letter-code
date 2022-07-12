@@ -1,6 +1,6 @@
 ---
 - name: Install reference-letters-system using Docker & docker-compose
-  hosts: docker_group
+  hosts: all
   vars:
     system_dir: "{{user_dir}}/reference-letters-system"
     git_repo_url: "https://github.com/panagiotis-bellias-it21871/reference-letters-system.git"
