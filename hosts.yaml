@@ -7,7 +7,4 @@ jenkins_server:
 
 docker_group:
     hosts:
-        docker-vm:
-            ansible_host: 20.203.208.222
-            ansible_port: 22
-            ansible_ssh_user: bellias
+        docker-vm
