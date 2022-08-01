@@ -109,4 +109,4 @@ The [files/nginx](files/nginx) folder has configuration files for nginx sites li
 
 For HTTPS you should make a folder named 'certs' under [files folder](files) and there you have to store (and concatenate according ZeroSSL instructions) your SSL Certificates for your docker-vm under websystem subfolder, and your jenkins-server under jenkins subfolder.
 
-## It's our pleasure to contact us at our social media or at github [issues](https://github.com/panagiotis-bellias-it21871/ansible-reference-letter-code/issues)
+## It's our pleasure to contact us at our social media or at github [issues](https://github.com/panagiotis-bellias-it21871/ansible-reference-letter-code/issues)*
