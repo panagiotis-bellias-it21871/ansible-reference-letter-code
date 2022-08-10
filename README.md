@@ -62,23 +62,21 @@ to check connectivity with declared hosts
 [reference-letters-system-install.yml](playbooks/reference-letters-system-install.yml): This playbook installs docker and docker-compose packages, clones fastapi and vuejs projects' code, populate .env variables, and scales up the containers declared in the docker-compose.yml of project taking build instructions from nonroot.Dockerfile of our backend app and from Dockerfile of our frontend app, according also to values passed during execution from the command line. Also we declare explicitly to which group of hosts we want to install and deploy our system.  
 ```bash
 ansible-playbook -l <group-name> playbooks/reference-letters-system-install.yml \
--e PSQL_USER=<username-for-db-user> \
--e PSQL_PASSWD=<password-for-db-user> \
--e PSQL_DB=<name-for-our-database> \
+-e BACKEND_DIR=reference-letters-fastapi-server \
 -e DATABASE_URL=<url-where-database-runs-with-right-credentials> \
--e VUE_APP_BACKEND_URL=<backend-url> \
--e VUE_APP_KEYCLOAK_URL=<keycloak-url>
+-e FRONTEND_DIR=reference-letters-vuejs-client \
+-e VUE_APP_BACKEND_URL="http://<dns-record-or-public-ip>:8000/api" \
+-e HOST=<dns-record-or-public-ip>
 ```
 
 e.g.
 ```bash
-ansible-playbook -l docker playbooks/reference-letters-system-install.yml \
-> -e PSQL_USER=bellias \
-> -e PSQL_PASSWD=pass123 \
-> -e PSQL_DB=reference_letters_data \
-> -e DATABASE_URL=postgresql://bellias:pass123@postgres_db:5432/reference_letters_data \
--e VUE_APP_BACKEND_URL="http://fastapi:8000" \
--e VUE_APP_KEYCLOAK_URL="http://keycloak_auth:8085/auth"
+ansible-playbook -l docker_group playbooks/reference-letters-system-install.yml \
+-e BACKEND_DIR=reference-letters-fastapi-server \
+-e DATABASE_URL=postgresql://bellias:pass123@postgres_db:5432/reference_letters_data \
+-e FRONTEND_DIR=reference-letters-vuejs-client \
+-e VUE_APP_BACKEND_URL="http://devops2docker.ddns.net:8000/api" \
+-e HOST=devops2docker.ddns.net
 ```
 
 The whole operation is also done automatically with Jenkins CI/CD Tool and Jenkinsfile.
@@ -111,4 +109,4 @@ The [files/nginx](files/nginx) folder has configuration files for nginx sites li
 
 For HTTPS you should make a folder named 'certs' under [files folder](files) and there you have to store (and concatenate according ZeroSSL instructions) your SSL Certificates for your docker-vm under websystem subfolder, and your jenkins-server under jenkins subfolder.
 
-## It's our pleasure to contact us at our social media or at github [issues](https://github.com/panagiotis-bellias-it21871/ansible-reference-letter-code/issues)
+## It's our pleasure to contact us at our social media or at github [issues](https://github.com/panagiotis-bellias-it21871/ansible-reference-letter-code/issues)*

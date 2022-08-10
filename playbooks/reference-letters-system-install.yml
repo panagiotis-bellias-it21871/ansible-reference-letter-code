@@ -2,7 +2,7 @@
 - name: Install reference-letters-system using Docker & docker-compose
   hosts: docker_group
   vars:
-    system_dir: "{{user_dir}}/reference-letters-system"
+    system_dir: "{{referencelettersystemservice.user_dir}}/reference-letters-system"
     git_repo_url: "https://github.com/panagiotis-bellias-it21871/reference-letters-system.git"
     git_repo_branch: "main"
   become: yes
@@ -75,7 +75,7 @@
 
     - name: ensure github.com is a known host
       lineinfile:
-          dest: "{{user_dir}}/.ssh/known_hosts"
+          dest: "{{referencelettersystemservice.user_dir}}/.ssh/known_hosts"
           create: yes
           state: present
           line: "{{lookup('pipe', 'ssh-keyscan -t rsa github.com')}}"
@@ -86,67 +86,69 @@
           repo: "{{git_repo_url}}"
           version: "{{git_repo_branch}}"
           clone: yes
-          track_submodules: yes
           force: yes
           dest: "{{system_dir}}"
       changed_when: true
+
+    - name: clone submodules
+      shell: "cd {{system_dir}} && git submodule update --init --recursive"
     
     - name: copy backend env file
       shell: "cp {{system_dir}}/{{BACKEND_DIR}}/ref_letters/.env.docker.example {{system_dir}}/{{BACKEND_DIR}}/ref_letters/.env"
 
     - name: populate backend ~/.env url
       lineinfile:
-          dest: "{{system_dir}}/'{{BACKEND_DIR}}'/ref_letters/.env"
+          dest: "{{system_dir}}/{{BACKEND_DIR}}/ref_letters/.env"
           state: present
           regexp: "^DATABASE_URL="
-          line: "DATABASE_URL='{{DATABASE_URL}}'"
+          line: "DATABASE_URL={{DATABASE_URL}}"
 
-    - name: populate backend ~/.env keycloak server url value
-      lineinfile:
-          dest: "{{system_dir}}/'{{BACKEND_DIR}}'/ref_letters/.env"
-          state: present
-          regexp: "^KC_SERVER_URL="
-          line: "KC_SERVER_URL='{{KC_SERVER_URL}}'"
+    #- name: populate backend ~/.env keycloak server url value
+    #  lineinfile:
+    #      dest: "{{system_dir}}/'{{BACKEND_DIR}}'/ref_letters/.env"
+    #      state: present
+    #      regexp: "^KC_SERVER_URL="
+    #      line: "KC_SERVER_URL='{{KC_SERVER_URL}}'"
 
-    - name: populate backend ~/.env keycloak client id value
-      lineinfile:
-          dest: "{{system_dir}}/'{{BACKEND_DIR}}'/ref_letters/.env"
-          state: present
-          regexp: "^KC_CLIENT_ID="
-          line: "KC_CLIENT_ID='{{KC_CLIENT_ID}}'"
+    #- name: populate backend ~/.env keycloak client id value
+    #  lineinfile:
+    #      dest: "{{system_dir}}/'{{BACKEND_DIR}}'/ref_letters/.env"
+    #      state: present
+    #      regexp: "^KC_CLIENT_ID="
+    #      line: "KC_CLIENT_ID='{{KC_CLIENT_ID}}'"
     
-    - name: populate backend ~/.env keycloak realm value
-      lineinfile:
-          dest: "{{system_dir}}/'{{BACKEND_DIR}}'/ref_letters/.env"
-          state: present
-          regexp: "^KC_REALM="
-          line: "KC_REALM='{{KC_REALM}}'"
-    
-    - name: populate backend ~/.env keycloak client secret value
-      lineinfile:
-          dest: "{{system_dir}}/'{{BACKEND_DIR}}'/ref_letters/.env"
-          state: present
-          regexp: "^KC_CLIENT_SECRET="
-          line: "KC_CLIENT_SECRET='{{KC_CLIENT_SECRET}}'"
+    #- name: populate backend ~/.env keycloak realm value
+    #  lineinfile:
+    #      dest: "{{system_dir}}/'{{BACKEND_DIR}}'/ref_letters/.env"
+    #      state: present
+    #      regexp: "^KC_REALM="
+    #      line: "KC_REALM='{{KC_REALM}}'"
+    # 
+    #- name: populate backend ~/.env keycloak client secret value
+    #  lineinfile:
+    #      dest: "{{system_dir}}/'{{BACKEND_DIR}}'/ref_letters/.env"
+    #      state: present
+    #      regexp: "^KC_CLIENT_SECRET="
+    #      line: "KC_CLIENT_SECRET='{{KC_CLIENT_SECRET}}'"
 
     # possible here to add more .env variables
-    
+
     - name: copy vuejs env file
-      shell: "cp {{system_dir}}/'{{FRONTEND_DIR}}'/.env.example {{system_dir}}/'{{FRONTEND_DIR}}'/.env"
+      shell: "cp {{system_dir}}/{{FRONTEND_DIR}}/.env.example {{system_dir}}/'{{FRONTEND_DIR}}'/.env"
 
     - name: populate vuejs ~/.env backend url value
       lineinfile:
-          dest: "{{system_dir}}/'{{FRONTEND_DIR}}'/.env"
+          dest: "{{system_dir}}/{{FRONTEND_DIR}}/.env"
           state: present
           regexp: "^VUE_APP_BACKEND_URL="
-          line: "VUE_APP_BACKEND_URL='{{VUE_APP_BACKEND_URL}}'"
-    
-    - name: populate vuejs ~/.env keycloak url value
-      lineinfile:
-          dest: "{{system_dir}}/'{{FRONTEND_DIR}}'/.env"
-          state: present
-          regexp: "^VUE_APP_KEYCLOAK_URL="
-          line: "VUE_APP_KEYCLOAK_URL='{{VUE_APP_KEYCLOAK_URL}}'"
+          line: "VUE_APP_BACKEND_URL={{VUE_APP_BACKEND_URL}}"
+
+    # - name: populate vuejs ~/.env keycloak url value
+    #  lineinfile:
+    #      dest: "{{system_dir}}/'{{FRONTEND_DIR}}'/.env"
+    #      state: present
+    #      regexp: "^VUE_APP_KEYCLOAK_URL="
+    #      line: "VUE_APP_KEYCLOAK_URL='{{VUE_APP_KEYCLOAK_URL}}'"
 
     # - name: copy certificates
     #   copy:
@@ -172,6 +174,13 @@
       pip:
         name: "docker-compose" 
       become: yes
+
+    - name: populate docker-compose.yaml host value
+      lineinfile:
+          dest: "{{system_dir}}/docker-compose.yml"
+          state: present
+          regexp: "        - wget -S --spider"
+          line: "        - wget -S --spider http://{{host}}:8000/docs"
 
     - name: Tear down existing services
       community.docker.docker_compose:
