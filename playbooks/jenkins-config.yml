@@ -17,10 +17,10 @@
         src: ../files/nginx/jenkins.nginx.j2
         dest: "/etc/nginx/sites-available/jenkins"
 
-    # - name: copy nginx https conf file
-    #   template:
-    #     src: ../files/nginx/jenkins.https.nginx.j2
-    #     dest: "/etc/nginx/sites-available/jenkinsssl"
+    - name: copy nginx https conf file
+      template:
+        src: ../files/nginx/jenkins.https.nginx.j2
+        dest: "/etc/nginx/sites-available/jenkinsssl"
 
     # - name: copy certificates
     #   copy:
@@ -29,7 +29,7 @@
     #   with_items:
     #     - ../files/certs/jenkins/certificate.crt
     #     - ../files/certs/jenkins/private.key
-  
+
     - name: enable jenkins site in nginx
       file:
         src: "/etc/nginx/sites-available/jenkins"
@@ -37,19 +37,19 @@
         state: link
       notify: restart nginx
 
-    # - name: enable jenkinsssl site in nginx
-    #   file:
-    #     src: "/etc/nginx/sites-available/jenkinsssl"
-    #     dest: "/etc/nginx/sites-enabled/jenkinsssl"
-    #     state: link
-    #   notify: restart nginx
+    - name: enable jenkinsssl site in nginx
+      file:
+        src: "/etc/nginx/sites-available/jenkinsssl"
+        dest: "/etc/nginx/sites-enabled/jenkinsssl"
+        state: link
+      notify: restart nginx
 
     - name: de-activate default nginx site
       file:
         path: /etc/nginx/sites-enabled/default
         state: absent
       notify: restart nginx
-    
+
     become: yes
     become_user: root
 

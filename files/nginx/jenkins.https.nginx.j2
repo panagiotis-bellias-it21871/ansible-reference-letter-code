@@ -1,9 +1,11 @@
 server {
 
-    listen 443 ssl;
+    listen 443 ssl default_server;
+    listen [::]:443 ssl default_server;
+    include snippets/letsencrypt.conf;
     # certs
-    ssl_certificate /etc/ssl/private/certificate.crt;
-    ssl_certificate_key /etc/ssl/private/private.key;
+    ssl_certificate /etc/letsencrypt/live/example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/example.com/privkey.pem;
     client_max_body_size 4G;
 
     server_name _;
