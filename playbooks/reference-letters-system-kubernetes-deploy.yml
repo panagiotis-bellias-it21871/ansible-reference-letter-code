@@ -1,0 +1,230 @@
+---
+- name: Install reference-letters-system using Kubernetes MicroK8S cluster
+  hosts: k8s_group
+  #vars:
+  #  system_dir: "{{referencelettersystemservice.user_dir}}/reference-letters-system"
+  #  git_repo_url: "https://github.com/panagiotis-bellias-it21871/reference-letters-system.git"
+  #  git_repo_branch: "main"
+  #become: yes
+  #become_user: root
+  tasks:
+    - name: Create a k8s namespace
+      kubernetes.core.k8s:
+        name: thesis
+        api_version: v1
+        kind: Namespace
+        state: present
+
+    - name: Create ConfigMap object inlinely for backend application
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: ConfigMap
+          metadata:
+            name: fastapi-config
+          data:
+            DATABASE_URL: {{DATABASE_URL}}
+            # more please
+
+    - name: Initialize Database
+
+    # All these for now are just for help with the ansible code!
+    - name: Install Docker packages
+      remote_user: "{{referencelettersystemservice.group}}"
+      apt:
+        name: "{{ item }}"
+        state: present
+        update_cache: yes
+      with_items:
+        - apt-transport-https
+        - ca-certificates
+        - curl
+        - software-properties-common
+      tags:
+        - docker
+    - name: Add Docker s official GPG key
+      remote_user: "{{referencelettersystemservice.group}}"
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+      tags:
+        - docker
+    - name: Verify that we have the key with the fingerprint
+      remote_user: "{{referencelettersystemservice.group}}"
+      apt_key:
+        id: 0EBFCD88
+        state: present
+      tags:
+        - docker
+    - name: Set up the stable repository
+      remote_user: "{{referencelettersystemservice.group}}"
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu xenial stable
+        state: present
+        update_cache: yes
+      tags:
+        - docker
+    - name: Update apt packages
+      remote_user: "{{referencelettersystemservice.group}}"
+      apt:
+        update_cache: yes
+      tags:
+        - docker
+    - name: Install docker
+      remote_user: "{{referencelettersystemservice.group}}"
+      apt:
+        name: docker-ce
+        state: present
+        update_cache: yes
+      #notify: Start docker on boot
+      tags:
+        - docker
+    - name: Add remote "{{referencelettersystemservice.group}}" user to "docker" group
+      remote_user: "{{referencelettersystemservice.group}}"
+      user:
+        name: "{{referencelettersystemservice.group}}"
+        group: "docker"
+        append: yes
+      tags:
+        - docker
+    - name: Install docker-compose
+      remote_user: "{{referencelettersystemservice.group}}"
+      get_url: 
+        url : https://github.com/docker/compose/releases/download/1.25.1-rc1/docker-compose-Linux-x86_64
+        dest: /usr/local/bin/docker-compose
+        mode: 'u+x,g+x'
+
+    - name: ensure github.com is a known host
+      lineinfile:
+          dest: "{{referencelettersystemservice.user_dir}}/.ssh/known_hosts"
+          create: yes
+          state: present
+          line: "{{lookup('pipe', 'ssh-keyscan -t rsa github.com')}}"
+          regexp: "^github\\.com"
+
+    - name: clone reference letters project
+      git:
+          repo: "{{git_repo_url}}"
+          version: "{{git_repo_branch}}"
+          clone: yes
+          force: yes
+          dest: "{{system_dir}}"
+      changed_when: true
+
+    - name: clone submodules
+      shell: "cd {{system_dir}} && git submodule update --init --recursive"
+    
+    - name: copy backend env file
+      shell: "cp {{system_dir}}/{{BACKEND_DIR}}/ref_letters/.env.docker.example {{system_dir}}/{{BACKEND_DIR}}/ref_letters/.env"
+
+    - name: populate backend ~/.env url
+      lineinfile:
+          dest: "{{system_dir}}/{{BACKEND_DIR}}/ref_letters/.env"
+          state: present
+          regexp: "^DATABASE_URL="
+          line: "DATABASE_URL={{DATABASE_URL}}"
+
+    #- name: populate backend ~/.env keycloak server url value
+    #  lineinfile:
+    #      dest: "{{system_dir}}/'{{BACKEND_DIR}}'/ref_letters/.env"
+    #      state: present
+    #      regexp: "^KC_SERVER_URL="
+    #      line: "KC_SERVER_URL='{{KC_SERVER_URL}}'"
+
+    #- name: populate backend ~/.env keycloak client id value
+    #  lineinfile:
+    #      dest: "{{system_dir}}/'{{BACKEND_DIR}}'/ref_letters/.env"
+    #      state: present
+    #      regexp: "^KC_CLIENT_ID="
+    #      line: "KC_CLIENT_ID='{{KC_CLIENT_ID}}'"
+    
+    #- name: populate backend ~/.env keycloak realm value
+    #  lineinfile:
+    #      dest: "{{system_dir}}/'{{BACKEND_DIR}}'/ref_letters/.env"
+    #      state: present
+    #      regexp: "^KC_REALM="
+    #      line: "KC_REALM='{{KC_REALM}}'"
+    # 
+    #- name: populate backend ~/.env keycloak client secret value
+    #  lineinfile:
+    #      dest: "{{system_dir}}/'{{BACKEND_DIR}}'/ref_letters/.env"
+    #      state: present
+    #      regexp: "^KC_CLIENT_SECRET="
+    #      line: "KC_CLIENT_SECRET='{{KC_CLIENT_SECRET}}'"
+
+    # possible here to add more .env variables
+
+    - name: copy vuejs env file
+      shell: "cp {{system_dir}}/{{FRONTEND_DIR}}/.env.example {{system_dir}}/'{{FRONTEND_DIR}}'/.env"
+
+    - name: populate vuejs ~/.env backend url value
+      lineinfile:
+          dest: "{{system_dir}}/{{FRONTEND_DIR}}/.env"
+          state: present
+          regexp: "^VUE_APP_BACKEND_URL="
+          line: "VUE_APP_BACKEND_URL={{VUE_APP_BACKEND_URL}}"
+
+    # - name: populate vuejs ~/.env keycloak url value
+    #  lineinfile:
+    #      dest: "{{system_dir}}/'{{FRONTEND_DIR}}'/.env"
+    #      state: present
+    #      regexp: "^VUE_APP_KEYCLOAK_URL="
+    #      line: "VUE_APP_KEYCLOAK_URL='{{VUE_APP_KEYCLOAK_URL}}'"
+
+    # - name: copy certificates
+    #   copy:
+    #     src: "../files/certs/docker/certificate.crt"
+    #     dest: "{{system_dir}}/assets/nginx/certs/server.crt"
+
+    # - name: copy certificates
+    #   copy:
+    #     src: "../files/certs/docker/private.key"
+    #     dest: "{{system_dir}}/assets/nginx/certs/server.key"
+
+    - name: install pip3
+      apt:
+        name: "python3-pip"
+        state: present
+
+    - name: Install Docker SDK for Python
+      pip:
+        name: "docker<5" 
+      become: yes
+
+    - name: Install docker-compose with pip
+      pip:
+        name: "docker-compose" 
+      become: yes
+
+    - name: populate docker-compose.yaml host value
+      lineinfile:
+          dest: "{{system_dir}}/docker-compose.yml"
+          state: present
+          regexp: "        - wget -S --spider"
+          line: "        - wget -S --spider http://{{host}}:8000/docs"
+
+    - name: Tear down existing services
+      community.docker.docker_compose:
+        project_src: "{{system_dir}}"
+        state: absent
+      become: true
+      vars:
+        ansible_python_interpreter: /bin/python3
+
+    - name: Create and start services
+      community.docker.docker_compose:
+        project_src: "{{system_dir}}"
+      register: output
+
+    - ansible.builtin.debug:
+        var: output
+
+    - name: Run `docker-compose up`
+      community.docker.docker_compose:
+        project_src: "{{system_dir}}"
+        build: no
+      register: output
+    
+    - ansible.builtin.debug:
+        var: output

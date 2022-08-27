@@ -1,3 +1,5 @@
+# You first must have the corresponding ~/.ssh/config with the names for the hosts below
+# matching these in that file referring to the Host
 jenkins_server:
     hosts:
         jenkins-vm
@@ -5,3 +7,7 @@ jenkins_server:
 docker_group:
     hosts:
         docker-vm
+
+k8s_group:
+    hosts:
+        k8s-vm

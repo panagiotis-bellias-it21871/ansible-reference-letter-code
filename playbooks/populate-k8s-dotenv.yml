@@ -35,7 +35,7 @@
           state: present
           regexp: "^DATABASE_URL="
           line: "DATABASE_URL='{{DATABASE_URL}}'"
-
+    '''
     - name: populate backend ~/.env keycloak server url value
       lineinfile:
           dest: "{{system_dir}}/'{{BACKEND_DIR}}'/ref_letters/.env"
@@ -63,7 +63,7 @@
           state: present
           regexp: "^KC_CLIENT_SECRET="
           line: "KC_CLIENT_SECRET='{{KC_CLIENT_SECRET}}'"
-
+    '''
     # possible here to add more .env variables
     
     - name: copy vuejs env file
