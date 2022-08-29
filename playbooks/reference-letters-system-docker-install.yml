@@ -1,15 +1,15 @@
 ---
 - name: Install reference-letters-system using Docker & docker-compose
-  hosts: docker_group
+  hosts: all
   vars:
-    system_dir: "{{referencelettersystemservice.user_dir}}/reference-letters-system"
+    system_dir: "{{reference_letter_system_service.user_dir}}/reference-letters-system"
     git_repo_url: "https://github.com/panagiotis-bellias-it21871/reference-letters-system.git"
     git_repo_branch: "main"
   become: yes
   become_user: root
   tasks:
     - name: Install Docker packages
-      remote_user: "{{referencelettersystemservice.group}}"
+      remote_user: "{{reference_letter_system_service.group}}"
       apt:
         name: "{{ item }}"
         state: present
@@ -22,21 +22,21 @@
       tags:
         - docker
     - name: Add Docker s official GPG key
-      remote_user: "{{referencelettersystemservice.group}}"
+      remote_user: "{{reference_letter_system_service.group}}"
       apt_key:
         url: https://download.docker.com/linux/ubuntu/gpg
         state: present
       tags:
         - docker
     - name: Verify that we have the key with the fingerprint
-      remote_user: "{{referencelettersystemservice.group}}"
+      remote_user: "{{reference_letter_system_service.group}}"
       apt_key:
         id: 0EBFCD88
         state: present
       tags:
         - docker
     - name: Set up the stable repository
-      remote_user: "{{referencelettersystemservice.group}}"
+      remote_user: "{{reference_letter_system_service.group}}"
       apt_repository:
         repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu xenial stable
         state: present
@@ -44,13 +44,13 @@
       tags:
         - docker
     - name: Update apt packages
-      remote_user: "{{referencelettersystemservice.group}}"
+      remote_user: "{{reference_letter_system_service.group}}"
       apt:
         update_cache: yes
       tags:
         - docker
     - name: Install docker
-      remote_user: "{{referencelettersystemservice.group}}"
+      remote_user: "{{reference_letter_system_service.group}}"
       apt:
         name: docker-ce
         state: present
@@ -58,16 +58,16 @@
       #notify: Start docker on boot
       tags:
         - docker
-    - name: Add remote "{{referencelettersystemservice.group}}" user to "docker" group
-      remote_user: "{{referencelettersystemservice.group}}"
+    - name: Add remote "{{reference_letter_system_service.group}}" user to "docker" group
+      remote_user: "{{reference_letter_system_service.group}}"
       user:
-        name: "{{referencelettersystemservice.group}}"
+        name: "{{reference_letter_system_service.group}}"
         group: "docker"
         append: yes
       tags:
         - docker
     - name: Install docker-compose
-      remote_user: "{{referencelettersystemservice.group}}"
+      remote_user: "{{reference_letter_system_service.group}}"
       get_url: 
         url : https://github.com/docker/compose/releases/download/1.25.1-rc1/docker-compose-Linux-x86_64
         dest: /usr/local/bin/docker-compose
@@ -75,7 +75,7 @@
 
     - name: ensure github.com is a known host
       lineinfile:
-          dest: "{{referencelettersystemservice.user_dir}}/.ssh/known_hosts"
+          dest: "{{reference_letter_system_service.user_dir}}/.ssh/known_hosts"
           create: yes
           state: present
           line: "{{lookup('pipe', 'ssh-keyscan -t rsa github.com')}}"
@@ -103,35 +103,61 @@
           regexp: "^DATABASE_URL="
           line: "DATABASE_URL={{DATABASE_URL}}"
 
-    #- name: populate backend ~/.env keycloak server url value
-    #  lineinfile:
-    #      dest: "{{system_dir}}/'{{BACKEND_DIR}}'/ref_letters/.env"
-    #      state: present
-    #      regexp: "^KC_SERVER_URL="
-    #      line: "KC_SERVER_URL='{{KC_SERVER_URL}}'"
-
-    #- name: populate backend ~/.env keycloak client id value
-    #  lineinfile:
-    #      dest: "{{system_dir}}/'{{BACKEND_DIR}}'/ref_letters/.env"
-    #      state: present
-    #      regexp: "^KC_CLIENT_ID="
-    #      line: "KC_CLIENT_ID='{{KC_CLIENT_ID}}'"
+    - name: populate backend ~/.env origins
+      lineinfile:
+          dest: "{{system_dir}}/{{BACKEND_DIR}}/ref_letters/.env"
+          state: present
+          regexp: "^ORIGINS="
+          line: "ORIGINS={{ORIGINS}}"
     
-    #- name: populate backend ~/.env keycloak realm value
-    #  lineinfile:
-    #      dest: "{{system_dir}}/'{{BACKEND_DIR}}'/ref_letters/.env"
-    #      state: present
-    #      regexp: "^KC_REALM="
-    #      line: "KC_REALM='{{KC_REALM}}'"
-    # 
-    #- name: populate backend ~/.env keycloak client secret value
-    #  lineinfile:
-    #      dest: "{{system_dir}}/'{{BACKEND_DIR}}'/ref_letters/.env"
-    #      state: present
-    #      regexp: "^KC_CLIENT_SECRET="
-    #      line: "KC_CLIENT_SECRET='{{KC_CLIENT_SECRET}}'"
-
-    # possible here to add more .env variables
+    - name: populate backend ~/.env secret
+      lineinfile:
+          dest: "{{system_dir}}/{{BACKEND_DIR}}/ref_letters/.env"
+          state: present
+          regexp: "^SECRET="
+          line: "SECRET={{SECRET}}"
+    
+    - name: populate backend ~/.env mail_username
+      lineinfile:
+          dest: "{{system_dir}}/{{BACKEND_DIR}}/ref_letters/.env"
+          state: present
+          regexp: "^MAIL_USERNAME="
+          line: "MAIL_USERNAME={{MAIL_USERNAME}}"
+    
+    - name: populate backend ~/.env mail_password
+      lineinfile:
+          dest: "{{system_dir}}/{{BACKEND_DIR}}/ref_letters/.env"
+          state: present
+          regexp: "^MAIL_PASSWORD="
+          line: "MAIL_PASSWORD={{MAIL_PASSWORD}}"
+    
+    - name: populate backend ~/.env mail_from
+      lineinfile:
+          dest: "{{system_dir}}/{{BACKEND_DIR}}/ref_letters/.env"
+          state: present
+          regexp: "^MAIL_FROM="
+          line: "MAIL_FROM={{MAIL_FROM}}"
+    
+    - name: populate backend ~/.env mail_port
+      lineinfile:
+          dest: "{{system_dir}}/{{BACKEND_DIR}}/ref_letters/.env"
+          state: present
+          regexp: "^MAIL_PORT="
+          line: "MAIL_PORT={{MAIL_PORT}}"
+    
+    - name: populate backend ~/.env mail_server
+      lineinfile:
+          dest: "{{system_dir}}/{{BACKEND_DIR}}/ref_letters/.env"
+          state: present
+          regexp: "^MAIL_SERVER="
+          line: "MAIL_SERVER={{MAIL_SERVER}}"
+    
+    - name: populate backend ~/.env mail_from_name
+      lineinfile:
+          dest: "{{system_dir}}/{{BACKEND_DIR}}/ref_letters/.env"
+          state: present
+          regexp: "^MAIL_FROM_NAME="
+          line: "MAIL_FROM_NAME={{MAIL_FROM_NAME}}"
 
     - name: copy vuejs env file
       shell: "cp {{system_dir}}/{{FRONTEND_DIR}}/.env.example {{system_dir}}/'{{FRONTEND_DIR}}'/.env"
@@ -143,22 +169,33 @@
           regexp: "^VUE_APP_BACKEND_URL="
           line: "VUE_APP_BACKEND_URL={{VUE_APP_BACKEND_URL}}"
 
-    # - name: populate vuejs ~/.env keycloak url value
-    #  lineinfile:
-    #      dest: "{{system_dir}}/'{{FRONTEND_DIR}}'/.env"
-    #      state: present
-    #      regexp: "^VUE_APP_KEYCLOAK_URL="
-    #      line: "VUE_APP_KEYCLOAK_URL='{{VUE_APP_KEYCLOAK_URL}}'"
+    - name: populate vuejs ~/.env base endpoint prefix value
+      lineinfile:
+          dest: "{{system_dir}}/{{FRONTEND_DIR}}/.env"
+          state: present
+          regexp: "^VUE_APP_BASE_ENDPOINT_PREFIX="
+          line: "VUE_APP_BASE_ENDPOINT_PREFIX={{VUE_APP_BASE_ENDPOINT_PREFIX}}"
 
-    # - name: copy certificates
-    #   copy:
-    #     src: "../files/certs/docker/certificate.crt"
-    #     dest: "{{system_dir}}/assets/nginx/certs/server.crt"
+    - name: populate vuejs ~/.env rl letters endpoint value
+      lineinfile:
+          dest: "{{system_dir}}/{{FRONTEND_DIR}}/.env"
+          state: present
+          regexp: "^VUE_APP_RL_LETTERS_ENDPOINT="
+          line: "VUE_APP_RL_LETTERS_ENDPOINT={{VUE_APP_RL_LETTERS_ENDPOINT}}"
 
-    # - name: copy certificates
-    #   copy:
-    #     src: "../files/certs/docker/private.key"
-    #     dest: "{{system_dir}}/assets/nginx/certs/server.key"
+    - name: populate vuejs ~/.env auth endpoint prefix value
+      lineinfile:
+          dest: "{{system_dir}}/{{FRONTEND_DIR}}/.env"
+          state: present
+          regexp: "^VUE_APP_AUTH_ENDPOINT_PREFIX="
+          line: "VUE_APP_AUTH_ENDPOINT_PREFIX={{VUE_APP_AUTH_ENDPOINT_PREFIX}}"
+
+    - name: populate vuejs ~/.env auth login endpoint value
+      lineinfile:
+          dest: "{{system_dir}}/{{FRONTEND_DIR}}/.env"
+          state: present
+          regexp: "^VUE_APP_AUTH_LOGIN_ENDPOINT="
+          line: "VUE_APP_AUTH_LOGIN_ENDPOINT={{VUE_APP_AUTH_LOGIN_ENDPOINT}}"
 
     - name: install pip3
       apt:
@@ -180,7 +217,7 @@
           dest: "{{system_dir}}/docker-compose.yml"
           state: present
           regexp: "        - wget -S --spider"
-          line: "        - wget -S --spider http://{{host}}:8000/docs"
+          line: "        - wget -S --spider http://{{HOST}}:8000/docs"
 
     - name: Tear down existing services
       community.docker.docker_compose:
@@ -190,6 +227,7 @@
       vars:
         ansible_python_interpreter: /bin/python3
 
+    # issue here?
     - name: Create and start services
       community.docker.docker_compose:
         project_src: "{{system_dir}}"

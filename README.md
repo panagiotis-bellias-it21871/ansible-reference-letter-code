@@ -60,6 +60,27 @@ to check connectivity with declared hosts
 #### Containers For Our Web System
 
 [reference-letters-system-install.yml](playbooks/reference-letters-system-install.yml): This playbook installs docker and docker-compose packages, clones fastapi and vuejs projects' code, populate .env variables, and scales up the containers declared in the docker-compose.yml of project taking build instructions from nonroot.Dockerfile of our backend app and from Dockerfile of our frontend app, according also to values passed during execution from the command line. Also we declare explicitly to which group of hosts we want to install and deploy our system.  
+
+** SAMPLE_EXECUTION **
+
+```bash
+ansible-playbook -l docker_group playbooks/reference-letters-system-docker-install-demo.yml \
+--ask-become-pass -e group='belliaspan' \
+-e user_dir='/home/belliaspan' \
+-e BACKEND_DIR=reference-letters-fastapi-server -e DATABASE_URL=postgresql://bellias:pass123@postgres_db:5432/reference_letters_data \
+-e ORIGINS='["http://localhost:8080/","http://localhost:8081/", "http://vuejs:8080", "http://vuejs:8081"]' \
+-e MAIL_USERNAME=ref.letters.web.app@gmail.com \
+-e MAIL_PASSWORD=<YOUR-EMAIL-PASSWORD> \
+-e MAIL_FROM=ref.letters.web.app@gmail.com -e MAIL_PORT=587 \
+-e MAIL_SERVER=smtp.gmail.com -e MAIL_FROM_NAME='Reference Letters Web Application' \
+-e SECRET="1237N20^K9*t0HYaBayuo7XwgTg*kXspVXWUIz@ReE7eHxDY" \
+-e FRONTEND_DIR=reference-letters-vuejs-client \
+-e VUE_APP_BACKEND_URL="http://localhost:8000" \
+-e VUE_APP_BASE_ENDPOINT_PREFIX="api" \
+-e VUE_APP_RL_LETTERS_ENDPOINT="rl_requests" \
+-e VUE_APP_AUTH_ENDPOINT_PREFIX="auth" \
+-e VUE_APP_AUTH_LOGIN_ENDPOINT="auth/login" -e HOST=localhost
+```
 ```bash
 ansible-playbook -l <group-name> playbooks/reference-letters-system-install.yml \
 -e BACKEND_DIR=reference-letters-fastapi-server \
