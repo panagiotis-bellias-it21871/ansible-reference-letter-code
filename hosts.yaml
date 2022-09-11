@@ -11,3 +11,4 @@ docker_group:
 k8s_group:
     hosts:
         k8s-vm
+
