@@ -219,6 +219,10 @@
           regexp: "        - wget -S --spider"
           line: "        - wget -S --spider http://{{HOST}}:8000/docs"
 
+    - name: install docker_compose module
+      shell:
+        cmd: ansible-galaxy collection install community.docker
+
     - name: Tear down existing services
       community.docker.docker_compose:
         project_src: "{{system_dir}}"
