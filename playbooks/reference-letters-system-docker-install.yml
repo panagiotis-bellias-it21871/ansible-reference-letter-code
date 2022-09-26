@@ -108,7 +108,7 @@
           dest: "{{system_dir}}/{{BACKEND_DIR}}/ref_letters/.env"
           state: present
           regexp: "^ORIGIN="
-          line: "ORIGIN={{ORIGINS}}"
+          line: "ORIGIN={{ORIGIN}}"
     
     - name: populate backend ~/.env secret
       lineinfile:
