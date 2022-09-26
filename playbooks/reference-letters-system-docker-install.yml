@@ -167,35 +167,35 @@
           dest: "{{system_dir}}/{{FRONTEND_DIR}}/.env"
           state: present
           regexp: "^VUE_APP_BACKEND_URL="
-          line: "VUE_APP_BACKEND_URL={{VUE_APP_BACKEND_URL}}"
+          line: "VUE_APP_BACKEND_URL={{BACKEND_URL}}"
 
     - name: populate vuejs ~/.env base endpoint prefix value
       lineinfile:
           dest: "{{system_dir}}/{{FRONTEND_DIR}}/.env"
           state: present
           regexp: "^VUE_APP_BASE_ENDPOINT_PREFIX="
-          line: "VUE_APP_BASE_ENDPOINT_PREFIX={{VUE_APP_BASE_ENDPOINT_PREFIX}}"
+          line: "VUE_APP_BASE_ENDPOINT_PREFIX={{BASE_ENDPOINT_PREFIX}}"
 
     - name: populate vuejs ~/.env rl letters endpoint value
       lineinfile:
           dest: "{{system_dir}}/{{FRONTEND_DIR}}/.env"
           state: present
           regexp: "^VUE_APP_RL_LETTERS_ENDPOINT="
-          line: "VUE_APP_RL_LETTERS_ENDPOINT={{VUE_APP_RL_LETTERS_ENDPOINT}}"
+          line: "VUE_APP_RL_LETTERS_ENDPOINT={{RL_LETTERS_ENDPOINT}}"
 
     - name: populate vuejs ~/.env auth endpoint prefix value
       lineinfile:
           dest: "{{system_dir}}/{{FRONTEND_DIR}}/.env"
           state: present
           regexp: "^VUE_APP_AUTH_ENDPOINT_PREFIX="
-          line: "VUE_APP_AUTH_ENDPOINT_PREFIX={{VUE_APP_AUTH_ENDPOINT_PREFIX}}"
+          line: "VUE_APP_AUTH_ENDPOINT_PREFIX={{AUTH_ENDPOINT_PREFIX}}"
 
     - name: populate vuejs ~/.env auth login endpoint value
       lineinfile:
           dest: "{{system_dir}}/{{FRONTEND_DIR}}/.env"
           state: present
           regexp: "^VUE_APP_AUTH_LOGIN_ENDPOINT="
-          line: "VUE_APP_AUTH_LOGIN_ENDPOINT={{VUE_APP_AUTH_LOGIN_ENDPOINT}}"
+          line: "VUE_APP_AUTH_LOGIN_ENDPOINT={{AUTH_LOGIN_ENDPOINT}}"
 
     - name: install pip3
       apt:
