@@ -224,12 +224,10 @@
     #    cmd: ansible-galaxy collection install community.docker
 
     - name: Tear down existing services
-      shell:
-        cmd: "cd {{system_dir}}/ && docker-compose down"
+      shell: "cd {{system_dir}}/ && docker-compose down"
 
     - name: Create and start services and Run `docker-compose up`
-      shell:
-        cmd: "cd {{system_dir}}/ && docker-compose up"
+      shell: "cd {{system_dir}}/ && docker-compose up"
     #    register: output
 
     #- ansible.builtin.debug:
